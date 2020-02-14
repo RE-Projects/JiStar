@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.jistar.core.elements;
+package br.puc.rj.jistar.core.elements;
 
 /**
  *

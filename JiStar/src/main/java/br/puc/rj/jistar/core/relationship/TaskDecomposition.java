@@ -3,14 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.jistar.core.relationship;
+package br.puc.rj.jistar.core.relationship;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.jistar.core.elements.Task;
+import br.puc.rj.jistar.core.elements.Task;
 
 /**
  *

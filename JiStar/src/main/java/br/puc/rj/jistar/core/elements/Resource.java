@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.jistar.core.elements;
+package br.puc.rj.jistar.core.elements;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
  * @author anamm
  */
 @Documented
-@Retention(value=RetentionPolicy.SOURCE)
+@Retention(value=RetentionPolicy.RUNTIME)
 @Target(value={ElementType.FIELD,ElementType.TYPE,ElementType.LOCAL_VARIABLE})
 public @interface Resource {
     String name();

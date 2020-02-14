@@ -3,15 +3,18 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.jistar.core.elements;
+package br.puc.rj.jistar.core.elements;
 
 import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 /**
  *
  * @author anamm
  */
 @Documented
+@Retention(value=RetentionPolicy.RUNTIME)
 public @interface Softgoals {
     Softgoal[] value();
 }
