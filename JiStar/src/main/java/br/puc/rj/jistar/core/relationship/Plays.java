@@ -6,15 +6,18 @@
 package br.puc.rj.jistar.core.relationship;
 
 import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-
+import java.lang.annotation.Target;
+import br.puc.rj.jistar.core.elements.Actor;
 /**
  *
  * @author anamm
  */
 @Documented
 @Retention(value=RetentionPolicy.RUNTIME)
+@Target(value=ElementType.TYPE)
 public @interface Plays {
-    
+    Actor[] role();
 }

@@ -6,15 +6,20 @@
 package br.puc.rj.jistar.core.relationship;
 
 import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import br.puc.rj.jistar.core.elements.Actor;
 
 /**
  *
  * @author anamm
+ * An agent occupies one or more positions
  */
 @Documented
 @Retention(value=RetentionPolicy.RUNTIME)
+@Target(value=ElementType.TYPE)
 public @interface Occupies {
-    
+    Actor[] position();
 }
