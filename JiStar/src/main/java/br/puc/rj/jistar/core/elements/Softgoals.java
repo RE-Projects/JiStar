@@ -16,8 +16,8 @@ import java.lang.annotation.Target;
  * @author anamm
  */
 @Documented
+@Target(value={ElementType.FIELD, ElementType.TYPE})
 @Retention(value=RetentionPolicy.RUNTIME)
-@Target(value={ElementType.FIELD,ElementType.METHOD})
 public @interface Softgoals {
     Softgoal[] value();
 }

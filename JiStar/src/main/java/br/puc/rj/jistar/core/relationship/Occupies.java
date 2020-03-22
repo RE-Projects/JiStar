@@ -19,7 +19,7 @@ import br.puc.rj.jistar.core.elements.Actor;
  */
 @Documented
 @Retention(value=RetentionPolicy.RUNTIME)
-@Target(value=ElementType.TYPE)
+@Target(value={ElementType.TYPE_USE,ElementType.FIELD})
 public @interface Occupies {
     Actor[] position();
 }

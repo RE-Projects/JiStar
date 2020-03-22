@@ -25,12 +25,16 @@ import br.puc.rj.jistar.core.elements.Goal;
 import br.puc.rj.jistar.core.elements.Resource;
 import br.puc.rj.jistar.core.elements.Softgoal;
 import br.puc.rj.jistar.core.elements.Task;
+import br.puc.rj.jistar.core.relationship.Contribution;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -38,6 +42,14 @@ import java.util.UUID;
  * @author anamm
  */
 public class ModelGenerator {
+
+    static StringBuffer outputModel = new StringBuffer();
+    static StringBuffer outputOrphans = new StringBuffer("\n\"orphans\": [],");
+    static StringBuffer outputDependencies = new StringBuffer("\n\"dependencies\": [],");
+    static StringBuffer outputLinks = new StringBuffer("\n\"links\": [");
+    static StringBuffer outputDisplay = new StringBuffer("\n\"display\": [],");
+    static StringBuffer outputActors = new StringBuffer("");
+    static int x = 10, y = 10;
 
     public static void main(String args[]) {
         try {
@@ -47,7 +59,7 @@ public class ModelGenerator {
                     htmlResult(classList, args[0]);
                     break;
                 }
-                case "-pistar":{
+                case "-pistar": {
                     pistarResult(classList, args[0]);
                     break;
                 }
@@ -59,17 +71,17 @@ public class ModelGenerator {
 
     public static void htmlResult(List<Class<Runnable>> classList, String projectPath) {
         String fileName = projectPath + "\\index.html";
-        String index = "<html>\n<head>\n<title>Index</title>\n</head>\n<body>";        
+        String index = "<html>\n<head>\n<title>Index</title>\n</head>\n<body>";
         save(index, fileName);
         classList.forEach(clazz -> {
             String htmlText = "<html>";
             String htmlName = projectPath + "\\";
             String htmlHead = "";
             String htmlBody = "<body>";
-            String link="";
+            String link = "";
             for (Actor a : clazz.getAnnotationsByType(Actor.class)) {
                 htmlName += a.name() + ".html";
-                link = "<a href=\'" + a.name() + ".html\'>" + a.name() +" "+ a.type().name()+ "</a>";
+                link = "<a href=\'" + a.name() + ".html\'>" + a.name() + " " + a.type().name() + "</a>";
                 htmlHead += "<head><title>" + a.name() + "</title></head>";
                 htmlBody += "<h1>" + a.name() + "</h1><br><hr>";
                 htmlBody += "<h2>Actor Type: " + a.type().name() + "<h2><br><br>";
@@ -102,7 +114,7 @@ public class ModelGenerator {
             htmlText += htmlHead + htmlBody + "</html>";
             save(htmlText, htmlName);
             //atualiza o index            
-            addContentIndex(link,projectPath);
+            addContentIndex(link, projectPath);
 
         });
         addContentIndex("\n</body>\n</html>", projectPath);
@@ -120,7 +132,7 @@ public class ModelGenerator {
     }
 
     public static void addContentIndex(String content, String projectPath) {
-        File f = new File(projectPath+"\\index.html");
+        File f = new File(projectPath + "\\index.html");
 
         FileInputStream fs = null;
         InputStreamReader in = null;
@@ -144,7 +156,7 @@ public class ModelGenerator {
             }
             int cnt1 = sb.indexOf("<body>");
             //sb.replace(cnt1,cnt1+textToEdit1.length(),"New Append text");
-            sb.append("<br>"+content);
+            sb.append("<br>" + content);
             fs.close();
             in.close();
             br.close();
@@ -177,10 +189,13 @@ public class ModelGenerator {
             result.forEach(javaFilePath -> {
                 try {
                     Path path = Paths.get(javaFilePath);
+                    System.out.print("\njavaFilePath: " + javaFilePath);
                     byte[] bytes = Files.readAllBytes(path);
                     String fonte = new String(bytes, StandardCharsets.UTF_8);
+                    System.out.print("\nFonte: " + fonte);
                     String nomeClasse = path.getFileName().toString().split("\\.")[0];
-                    Class<Runnable> clazz = compiler.compile(null, nomeClasse, fonte);
+                    Class<Runnable> clazz = compiler.compile("testejistar", nomeClasse, fonte);
+                    System.out.print("\n" + clazz.getDeclaredAnnotation(Actor.class));
                     classList.add(clazz);
                 } catch (Exception ex) {
                     Logger.getLogger(ModelGenerator.class.getName()).log(Level.SEVERE, null, ex);
@@ -194,59 +209,183 @@ public class ModelGenerator {
     }
 
     private static void pistarResult(List<Class<Runnable>> classList, String projectPath) {
-        StringBuffer saida = new StringBuffer("{\n"
-                + "  \"actors\": [\n");
+
         String fileName = projectPath + "\\goal_model.txt";
-        
-        classList.forEach(clazz -> {     
-            int id = 1, x = 10, y = 10;
+        outputModel.append("{\n"
+                + "  \"actors\": [\n");
+        System.out.print("Qtde classes: " + classList.size());
+        classList.forEach(clazz -> {
+
             for (Actor a : clazz.getAnnotationsByType(Actor.class)) {
-                String tipoAtor = (a.type().name().equals("General")) ? "Actor" : a.type().name();
-                saida.append("    \n{\n"
+                String actorType;
+                switch (a.type().name()) {
+                    case "AGENT": {
+                        actorType = "Agent";
+                        break;
+                    }
+                    case "ROLE": {
+                        actorType = "Role";
+                        break;
+                    }
+                    default: {
+                        actorType = "Actor";
+                    }
+                }
+                outputActors.append("\n{\n"
                         + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
-                        + "      \"text\": \"" + a.name()+ "\",\n"
-                        + "      \"type\": \"istar." + tipoAtor + "\",\n"
+                        + "      \"text\": \"" + a.name() + "\",\n"
+                        + "      \"type\": \"istar." + actorType + "\",\n"
                         + "      \"x\": " + x + ",\n"
                         + "      \"y\": " + y + ",\n"
-                        + "      \"nodes\": [\n");
+                        + "\"customProperties\": {\n"
+                        + "        \"Description\": \"\"\n"
+                        + "      },"
+                        + "\n\"nodes\": [\n");
+                x += 50;
+                y += 50;
+            }
 
-            }
-            htmlBody += "<div style=\"background-color:#ffffe6;color:black;padding:20px;\">Goals:<br>";
             for (Goal g : clazz.getAnnotationsByType(Goal.class)) {
-                htmlBody += g.name() + " - " + g.description() + "<br>";
+
+                outputActors.append("\n{\n"
+                        + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
+                        + "      \"text\": \"" + g.name() + "\",\n"
+                        + "      \"type\": \"istar." + "Goal" + "\",\n"
+                        + "      \"x\": " + x + ",\n"
+                        + "      \"y\": " + y + ",\n"
+                        + "\"customProperties\": {\n"
+                        + "        \"Description\": \"" + g.description() + "\"\n"
+                        + "      }},");
+                x += 5;
+                y += 5;
             }
-            htmlBody += "</div>";
-            htmlBody += "<div style=\"background-color:#e6f2ff;color:black;padding:20px;\">SoftGoals:<br>";
+
             for (Softgoal s : clazz.getAnnotationsByType(Softgoal.class)) {
-                htmlBody += s.name() + " - " + s.description() + "<br>";
+                outputActors.append("\n{\n"
+                        + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
+                        + "      \"text\": \"" + s.name() + "\",\n"
+                        + "      \"type\": \"istar." + "Softgoal" + "\",\n"
+                        + "      \"x\": " + x + ",\n"
+                        + "      \"y\": " + y + ",\n"
+                        + "\"customProperties\": {\n"
+                        + "        \"Description\": \"" + s.description() + "\"\n"
+                        + "      }},");
+                x += 5;
+                y += 5;
             }
-            htmlBody += "</div>";
-            htmlBody += "<div style=\"background-color:#e6ffe6;color:black;padding:20px;\">Resources:<br>";
+            for (Resource r : clazz.getAnnotationsByType(Resource.class)) {
+                outputActors.append("\n{\n"
+                        + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
+                        + "      \"text\": \"" + r.name() + "\",\n"
+                        + "      \"type\": \"istar." + "Resource" + "\",\n"
+                        + "      \"x\": " + x + ",\n"
+                        + "      \"y\": " + y + ",\n"
+                        + "\"customProperties\": {\n"
+                        + "        \"Description\": \"\"\n"
+                        + "      }},");
+                x += 5;
+                y += 5;
+            }
+
             for (Field f : clazz.getFields()) {
                 for (Resource r : f.getAnnotationsByType(Resource.class)) {
-                    htmlBody += " - " + r.name() + "<br>";
+                    outputActors.append("\n{\n"
+                            + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
+                            + "      \"text\": \"" + r.name() + "\",\n"
+                            + "      \"type\": \"istar." + "Resource" + "\",\n"
+                            + "      \"x\": " + x + ",\n"
+                            + "      \"y\": " + y + ",\n"
+                            + "\"customProperties\": {\n"
+                            + "        \"Description\": \"\"\n"
+                            + "      }},");
+                    x += 5;
+                    y += 5;
+                }
+                for (Softgoal s : f.getAnnotationsByType(Softgoal.class)) {
+                    outputActors.append("\n{\n"
+                            + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
+                            + "      \"text\": \"" + s.name() + "\",\n"
+                            + "      \"type\": \"istar." + "Quality" + "\",\n"
+                            + "      \"x\": " + x + ",\n"
+                            + "      \"y\": " + y + ",\n"
+                            + "\"customProperties\": {\n"
+                            + "        \"Description\": \"" + s.description() + "\"\n"
+                            + "      }},");
+                    x += 5;
+                    y += 5;
                 }
             }
-            htmlBody += "</div>";
-            htmlBody += "<div style=\"background-color:#ffe6f7;color:black;padding:20px;\">Tasks:<br>";
+
             for (Method m : clazz.getMethods()) {
+                UUID taskUUID = null;
+                UUID softgoalUUID = null;
                 for (Task t : m.getAnnotationsByType(Task.class)) {
-                    htmlBody += " - " + t.name() + "<br>";
+                    taskUUID = UUID.randomUUID();
+                    outputActors.append("\n{\n"
+                            + "      \"id\": \"" + taskUUID + "\",\n"
+                            + "      \"text\": \"" + t.name() + "\",\n"
+                            + "      \"type\": \"istar." + "Task" + "\",\n"
+                            + "      \"x\": " + x + ",\n"
+                            + "      \"y\": " + y + ",\n"
+                            + "\"customProperties\": {\n"
+                            + "        \"Description\": \"" + t.description() + "\"\n"
+                            + "      }},");
+                    x += 5;
+                    y += 5;
+                }
+                for (Contribution c : m.getAnnotationsByType(Contribution.class)) {
+                    softgoalUUID = UUID.randomUUID();
+                    outputActors.append("\n{\n"
+                            + "      \"id\": \"" + softgoalUUID + "\",\n"
+                            + "      \"text\": \"" + c.softgoal().name() + "\",\n"
+                            + "      \"type\": \"istar." + "Quality" + "\",\n"
+                            + "      \"x\": " + x + ",\n"
+                            + "      \"y\": " + y + ",\n"
+                            + "\"customProperties\": {\n"
+                            + "        \"Description\": \"" + c.softgoal().description() + "\"\n"
+                            + "      }},");
+                    outputLinks.append("\n{\n"
+                            + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
+                            + "      \"type\": \"istar.ContributionLink\",\n"
+                            + "      \"source\": \"" + taskUUID + "\",\n"
+                            + "      \"target\": \"" + softgoalUUID + "\",\n"
+                            + "\"label\": \""+c.value().toString().toLowerCase()+"\"},");
+                    x += 5;
+                    y += 5;
                 }
             }
-            htmlBody += "</div>";
-            htmlBody += "</body>";
-            htmlText += htmlHead + htmlBody + "</html>";
-            save(htmlText, htmlName);
-            //atualiza o index            
-            addContentIndex(link,projectPath);
+            outputActors.deleteCharAt(outputActors.length() - 1);
+            outputActors.append("]},");
 
         });
-        addContentIndex("\n</body>\n</html>", projectPath);
-        
-        
-        
-        
+        outputActors.deleteCharAt(outputActors.length() - 1);
+        outputActors.append(" ],\n");
+        outputModel.append(outputActors);
+        outputModel.append(outputOrphans);
+        outputModel.append(outputDependencies);
+        outputLinks.deleteCharAt(outputLinks.length() - 1);
+        outputLinks.append(" ],\n");
+        outputModel.append(outputLinks);
+        outputModel.append(outputDisplay);
+        DateFormat dateFormat = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss z");
+        Date date = new Date();
+        StringBuffer outputConfModelo = new StringBuffer("\n"
+                + "  \"tool\": \"pistar.2.0.0\",\n"
+                + "  \"istar\": \"2.0\",\n"
+                + "  \"saveDate\": \"" + dateFormat.format(date) + "\",\n"
+                + "  \"diagram\": {\n"
+                + "    \"width\": 2000,\n"
+                + "    \"height\": 1300,\n"
+                + "      \"name\": \" \",\n"
+                + "    \"customProperties\": {\n"
+                + "      \"Description\": \" \" \n"
+                + "    }\n"
+                + "  }\n"
+                + "} ");
+        outputModel.append(outputConfModelo);
+        save(outputModel.toString(), fileName);
+
+        /*
         for (Node no : modelo.getNodes()) {
             if (no instanceof Actor) {
                 Actor ator = (Actor) no;
@@ -381,7 +520,6 @@ public class ModelGenerator {
                 + "} ");
         return saida.toString();
         
-        */
-        
+         */
     }
 }

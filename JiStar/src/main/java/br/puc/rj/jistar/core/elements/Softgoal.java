@@ -17,9 +17,9 @@ import java.lang.annotation.ElementType;
  * @author anamm
  */
 @Documented
+@Target(value={ElementType.FIELD, ElementType.TYPE})
 @Retention(value=RetentionPolicy.RUNTIME)
 @Repeatable(Softgoals.class)
-@Target(value={ElementType.FIELD,ElementType.METHOD})
 public @interface Softgoal {
     String name();
     String description() default "";

@@ -5,9 +5,12 @@
  */
 package br.puc.rj.jistar.core.relationship;
 
+import br.puc.rj.jistar.core.elements.Actor;
 import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  *
@@ -15,6 +18,7 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Documented
 @Retention(value=RetentionPolicy.RUNTIME)
+@Target(value={ElementType.TYPE_USE,ElementType.FIELD})
 public @interface Covers {
-    
+    Actor[] role();
 }
