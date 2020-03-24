@@ -20,6 +20,6 @@ import br.puc.rj.jistar.core.elements.Softgoal;
 @Retention(value=RetentionPolicy.RUNTIME)
 @Target(value=ElementType.METHOD)
 public @interface Contribution {
-    ContributionType value();
-    Softgoal softgoal();
+    ContributionType type() default ContributionType.HELP;
+    String softgoal();
 }

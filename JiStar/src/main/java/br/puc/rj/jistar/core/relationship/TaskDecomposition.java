@@ -11,6 +11,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import br.puc.rj.jistar.core.elements.Task;
+import java.lang.annotation.Annotation;
 
 /**
  *
@@ -18,7 +19,8 @@ import br.puc.rj.jistar.core.elements.Task;
  */
 @Documented
 @Retention(value=RetentionPolicy.SOURCE)
-@Target(value=ElementType.TYPE_USE)
+@Target(value={ElementType.TYPE_USE,ElementType.METHOD, ElementType.PARAMETER})
 public @interface TaskDecomposition {
+    TaskDecompositionType type() default TaskDecompositionType.SUB_TASK;
     
 }

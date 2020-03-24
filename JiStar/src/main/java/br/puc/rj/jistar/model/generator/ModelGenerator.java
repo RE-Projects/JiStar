@@ -26,6 +26,8 @@ import br.puc.rj.jistar.core.elements.Resource;
 import br.puc.rj.jistar.core.elements.Softgoal;
 import br.puc.rj.jistar.core.elements.Task;
 import br.puc.rj.jistar.core.relationship.Contribution;
+import br.puc.rj.jistar.core.relationship.MeansEnd;
+import br.puc.rj.jistar.core.relationship.MeansEndType;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -35,6 +37,7 @@ import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.UUID;
 
 /**
@@ -50,6 +53,11 @@ public class ModelGenerator {
     static StringBuffer outputDisplay = new StringBuffer("\n\"display\": [],");
     static StringBuffer outputActors = new StringBuffer("");
     static int x = 10, y = 10;
+    static HashMap<String, UUID> actors = new HashMap<String, UUID>();
+    static HashMap<String, UUID> goals = new HashMap<String, UUID>();
+    static HashMap<String, UUID> softgoals = new HashMap<String, UUID>();
+    static HashMap<String, UUID> resources = new HashMap<String, UUID>();
+    static HashMap<String, UUID> tasks = new HashMap<String, UUID>();
 
     public static void main(String args[]) {
         try {
@@ -231,8 +239,9 @@ public class ModelGenerator {
                         actorType = "Actor";
                     }
                 }
+                actors.put(a.name().toLowerCase(), UUID.randomUUID());
                 outputActors.append("\n{\n"
-                        + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
+                        + "      \"id\": \"" + actors.get(a.name().toLowerCase()) + "\",\n"
                         + "      \"text\": \"" + a.name() + "\",\n"
                         + "      \"type\": \"istar." + actorType + "\",\n"
                         + "      \"x\": " + x + ",\n"
@@ -247,8 +256,9 @@ public class ModelGenerator {
 
             for (Goal g : clazz.getAnnotationsByType(Goal.class)) {
 
+                goals.put(g.name().toLowerCase(), UUID.randomUUID());
                 outputActors.append("\n{\n"
-                        + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
+                        + "      \"id\": \"" + goals.get(g.name().toLowerCase()) + "\",\n"
                         + "      \"text\": \"" + g.name() + "\",\n"
                         + "      \"type\": \"istar." + "Goal" + "\",\n"
                         + "      \"x\": " + x + ",\n"
@@ -261,10 +271,11 @@ public class ModelGenerator {
             }
 
             for (Softgoal s : clazz.getAnnotationsByType(Softgoal.class)) {
+                softgoals.put(s.name().toLowerCase(), UUID.randomUUID());
                 outputActors.append("\n{\n"
-                        + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
+                        + "      \"id\": \"" + softgoals.get(s.name().toLowerCase()) + "\",\n"
                         + "      \"text\": \"" + s.name() + "\",\n"
-                        + "      \"type\": \"istar." + "Softgoal" + "\",\n"
+                        + "      \"type\": \"istar." + "Quality" + "\",\n"
                         + "      \"x\": " + x + ",\n"
                         + "      \"y\": " + y + ",\n"
                         + "\"customProperties\": {\n"
@@ -274,8 +285,9 @@ public class ModelGenerator {
                 y += 5;
             }
             for (Resource r : clazz.getAnnotationsByType(Resource.class)) {
+                resources.put(r.name().toLowerCase(), UUID.randomUUID());
                 outputActors.append("\n{\n"
-                        + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
+                        + "      \"id\": \"" + resources.get(r.name().toLowerCase()) + "\",\n"
                         + "      \"text\": \"" + r.name() + "\",\n"
                         + "      \"type\": \"istar." + "Resource" + "\",\n"
                         + "      \"x\": " + x + ",\n"
@@ -289,8 +301,9 @@ public class ModelGenerator {
 
             for (Field f : clazz.getFields()) {
                 for (Resource r : f.getAnnotationsByType(Resource.class)) {
+                    resources.put(r.name().toLowerCase(), UUID.randomUUID());
                     outputActors.append("\n{\n"
-                            + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
+                            + "      \"id\": \"" + resources.get(r.name().toLowerCase()) + "\",\n"
                             + "      \"text\": \"" + r.name() + "\",\n"
                             + "      \"type\": \"istar." + "Resource" + "\",\n"
                             + "      \"x\": " + x + ",\n"
@@ -302,8 +315,9 @@ public class ModelGenerator {
                     y += 5;
                 }
                 for (Softgoal s : f.getAnnotationsByType(Softgoal.class)) {
+                    softgoals.put(s.name().toLowerCase(), UUID.randomUUID());
                     outputActors.append("\n{\n"
-                            + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
+                            + "      \"id\": \"" + softgoals.get(s.name().toLowerCase()) + "\",\n"
                             + "      \"text\": \"" + s.name() + "\",\n"
                             + "      \"type\": \"istar." + "Quality" + "\",\n"
                             + "      \"x\": " + x + ",\n"
@@ -317,12 +331,12 @@ public class ModelGenerator {
             }
 
             for (Method m : clazz.getMethods()) {
-                UUID taskUUID = null;
-                UUID softgoalUUID = null;
+                String taskName = null;
                 for (Task t : m.getAnnotationsByType(Task.class)) {
-                    taskUUID = UUID.randomUUID();
+                    tasks.put(t.name().toLowerCase(), UUID.randomUUID());
+                    taskName = t.name().toLowerCase();
                     outputActors.append("\n{\n"
-                            + "      \"id\": \"" + taskUUID + "\",\n"
+                            + "      \"id\": \"" + tasks.get(t.name().toLowerCase()) + "\",\n"
                             + "      \"text\": \"" + t.name() + "\",\n"
                             + "      \"type\": \"istar." + "Task" + "\",\n"
                             + "      \"x\": " + x + ",\n"
@@ -333,23 +347,103 @@ public class ModelGenerator {
                     x += 5;
                     y += 5;
                 }
+
                 for (Contribution c : m.getAnnotationsByType(Contribution.class)) {
-                    softgoalUUID = UUID.randomUUID();
-                    outputActors.append("\n{\n"
-                            + "      \"id\": \"" + softgoalUUID + "\",\n"
-                            + "      \"text\": \"" + c.softgoal().name() + "\",\n"
-                            + "      \"type\": \"istar." + "Quality" + "\",\n"
-                            + "      \"x\": " + x + ",\n"
-                            + "      \"y\": " + y + ",\n"
-                            + "\"customProperties\": {\n"
-                            + "        \"Description\": \"" + c.softgoal().description() + "\"\n"
-                            + "      }},");
+                    if (taskName == null) {
+                        tasks.put(m.getName().toLowerCase(), UUID.randomUUID());
+                        taskName = m.getName().toLowerCase();
+                        outputActors.append("\n{\n"
+                                + "      \"id\": \"" + tasks.get(m.getName().toLowerCase()) + "\",\n"
+                                + "      \"text\": \"" + m.getName().toLowerCase() + "\",\n"
+                                + "      \"type\": \"istar." + "Task" + "\",\n"
+                                + "      \"x\": " + x + ",\n"
+                                + "      \"y\": " + y + ",\n"
+                                + "\"customProperties\": {\n"
+                                + "        \"Description\": \" \"\n"
+                                + "      }},");
+                        x += 5;
+                        y += 5;
+                    }
+                    if (softgoals.get(c.softgoal().toLowerCase()) == null) {
+                        softgoals.put(c.softgoal().toLowerCase(), UUID.randomUUID());
+                        outputActors.append("\n{\n"
+                                + "      \"id\": \"" + softgoals.get(c.softgoal().toLowerCase()) + "\",\n"
+                                + "      \"text\": \"" + c.softgoal() + "\",\n"
+                                + "      \"type\": \"istar." + "Quality" + "\",\n"
+                                + "      \"x\": " + x + ",\n"
+                                + "      \"y\": " + y + ",\n"
+                                + "\"customProperties\": {\n"
+                                + "        \"Description\": \" \"\n"
+                                + "      }},");
+                    }
+
                     outputLinks.append("\n{\n"
                             + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
                             + "      \"type\": \"istar.ContributionLink\",\n"
-                            + "      \"source\": \"" + taskUUID + "\",\n"
-                            + "      \"target\": \"" + softgoalUUID + "\",\n"
-                            + "\"label\": \""+c.value().toString().toLowerCase()+"\"},");
+                            + "      \"source\": \"" + tasks.get(taskName) + "\",\n"
+                            + "      \"target\": \"" + softgoals.get(c.softgoal()) + "\",\n"
+                            + "\"label\": \"" + c.type().toString().toLowerCase() + "\"},");
+                    x += 5;
+                    y += 5;
+                }
+                for (MeansEnd me : m.getAnnotationsByType(MeansEnd.class)) {
+                    if (taskName == null) {
+                        tasks.put(m.getName().toLowerCase(), UUID.randomUUID());
+                        taskName = m.getName().toLowerCase();
+                        outputActors.append("\n{\n"
+                                + "      \"id\": \"" + tasks.get(m.getName().toLowerCase()) + "\",\n"
+                                + "      \"text\": \"" + m.getName().toLowerCase() + "\",\n"
+                                + "      \"type\": \"istar." + "Task" + "\",\n"
+                                + "      \"x\": " + x + ",\n"
+                                + "      \"y\": " + y + ",\n"
+                                + "\"customProperties\": {\n"
+                                + "        \"Description\": \" \"\n"
+                                + "      }},");
+                        x += 5;
+                        y += 5;
+                    }
+                    if (me.endType().equals(MeansEndType.GOAL)) {
+                        if (goals.get(me.end().toLowerCase()) == null) {
+                            goals.put(me.end().toLowerCase(), UUID.randomUUID());
+                            outputActors.append("\n{\n"
+                                    + "      \"id\": \"" + goals.get(me.end().toLowerCase()) + "\",\n"
+                                    + "      \"text\": \"" + me.end() + "\",\n"
+                                    + "      \"type\": \"istar." + "Goal" + "\",\n"
+                                    + "      \"x\": " + x + ",\n"
+                                    + "      \"y\": " + y + ",\n"
+                                    + "\"customProperties\": {\n"
+                                    + "        \"Description\": \" \"\n"
+                                    + "      }},");
+                        }
+                        outputLinks.append("\n{\n"
+                                + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
+                                + "      \"type\": \"istar.OrRefinementLink\",\n"
+                                + "      \"source\": \"" + tasks.get(taskName) + "\",\n"
+                                + "      \"target\": \"" + goals.get(me.end()) + "\"\n"
+                                + "},");
+                    }
+
+                    if (me.endType().equals(MeansEndType.RESOURCE)) {
+                        if (resources.get(me.end().toLowerCase()) == null) {
+                            resources.put(me.end().toLowerCase(), UUID.randomUUID());
+                            outputActors.append("\n{\n"
+                                    + "      \"id\": \"" + resources.get(me.end().toLowerCase()) + "\",\n"
+                                    + "      \"text\": \"" + me.end() + "\",\n"
+                                    + "      \"type\": \"istar." + "Goal" + "\",\n"
+                                    + "      \"x\": " + x + ",\n"
+                                    + "      \"y\": " + y + ",\n"
+                                    + "\"customProperties\": {\n"
+                                    + "        \"Description\": \" \"\n"
+                                    + "      }},");
+                        }
+                        outputLinks.append("\n{\n"
+                                + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
+                                + "      \"type\": \"istar.OrRefinementLink\",\n"
+                                + "      \"source\": \"" + tasks.get(taskName) + "\",\n"
+                                + "      \"target\": \"" + resources.get(me.end()) + "\"\n"
+                                + "},");
+                    }
+
                     x += 5;
                     y += 5;
                 }

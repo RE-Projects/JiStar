@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
  * @author anamm
  */
 @Documented
-@Target(value={ElementType.CONSTRUCTOR,ElementType.TYPE,ElementType.METHOD})
+@Target(value={ElementType.TYPE})
 @Retention(value=RetentionPolicy.RUNTIME)
 public @interface Goals {
     Goal[] value();
