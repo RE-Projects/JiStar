@@ -18,7 +18,7 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Retention(value=RetentionPolicy.RUNTIME)
-@Target(value={ElementType.FIELD,ElementType.TYPE_USE})
+@Target(value={ElementType.FIELD})
 public @interface IsPartOf {
-    Actor[] part();
+    String owner();
 }

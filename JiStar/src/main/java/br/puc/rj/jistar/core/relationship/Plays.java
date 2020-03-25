@@ -19,5 +19,5 @@ import br.puc.rj.jistar.core.elements.Actor;
 @Retention(value=RetentionPolicy.RUNTIME)
 @Target(value={ElementType.TYPE_USE,ElementType.FIELD})
 public @interface Plays {
-    Actor[] role();
+    String role();
 }

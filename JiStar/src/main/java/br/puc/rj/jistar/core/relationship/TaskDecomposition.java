@@ -22,5 +22,5 @@ import java.lang.annotation.Annotation;
 @Target(value={ElementType.TYPE_USE,ElementType.METHOD, ElementType.PARAMETER})
 public @interface TaskDecomposition {
     TaskDecompositionType type() default TaskDecompositionType.SUB_TASK;
-    
+    String element();
 }

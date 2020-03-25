@@ -18,7 +18,7 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Retention(value=RetentionPolicy.RUNTIME)
-@Target(value={ElementType.TYPE_USE,ElementType.FIELD})
+@Target(value={ElementType.FIELD})
 public @interface Covers {
-    Actor[] role();
+    String role();
 }
