@@ -37,6 +37,8 @@ import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -48,23 +50,25 @@ import java.util.UUID;
  * @author anamm
  */
 public class ModelGenerator {
-    
+
+    private static final Logger LOG = Logger.getLogger(ModelGenerator.class.getName());
     static StringBuffer outputModel = new StringBuffer();
     static StringBuffer outputOrphans = new StringBuffer("\n\"orphans\": [],");
     static StringBuffer outputDependencies = new StringBuffer("\n\"dependencies\": [],");
     static StringBuffer outputLinks = new StringBuffer("\n\"links\": [");
     static StringBuffer outputDisplay = new StringBuffer("\n\"display\": [],");
-    static StringBuffer outputActors = new StringBuffer("");
+    static StringBuffer outputActors = new StringBuffer("  ");
     static int x = 10, y = 10;
-    static HashMap<Actor,UUID> actors = new HashMap< Actor, UUID>();
+    static HashMap<Actor, UUID> actors = new HashMap< Actor, UUID>();
     static HashMap<String, UUID> goals = new HashMap<String, UUID>();
     static HashMap<String, UUID> softgoals = new HashMap<String, UUID>();
     static HashMap<String, UUID> resources = new HashMap<String, UUID>();
     static HashMap<String, UUID> tasks = new HashMap<String, UUID>();
-    
+
     public static void main(String args[]) {
         try {
-            List<Class<Runnable>> classList = listClasses(args[0]);
+            List<Class<Runnable>> classList = listCompiledClasses(args[0]);
+            LOG.info("\nClasses encontradas: " + classList.size());
             switch (args[1]) {
                 case "-html": {
                     htmlResult(classList, args[0]);
@@ -76,10 +80,12 @@ public class ModelGenerator {
                 }
             }
         } catch (Exception ex) {
-            Logger.getLogger(ModelGenerator.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.severe(ex.getMessage());
+            ex.printStackTrace();
+
         }
     }
-    
+
     public static void htmlResult(List<Class<Runnable>> classList, String projectPath) {
         String fileName = projectPath + "\\index.html";
         String index = "<html>\n<head>\n<title>Index</title>\n</head>\n<body>";
@@ -126,11 +132,11 @@ public class ModelGenerator {
             save(htmlText, htmlName);
             //atualiza o index            
             addContentIndex(link, projectPath);
-            
+
         });
         addContentIndex("\n</body>\n</html>", projectPath);
     }
-    
+
     public static void save(String texto, String fileName) {
         try {
             FileWriter fw = new FileWriter(new File(fileName));
@@ -141,23 +147,23 @@ public class ModelGenerator {
             e.printStackTrace();
         }
     }
-    
+
     public static void addContentIndex(String content, String projectPath) {
         File f = new File(projectPath + "\\index.html");
-        
+
         FileInputStream fs = null;
         InputStreamReader in = null;
         BufferedReader br = null;
-        
+
         StringBuffer sb = new StringBuffer();
-        
+
         String textinLine;
-        
+
         try {
             fs = new FileInputStream(f);
             in = new InputStreamReader(fs);
             br = new BufferedReader(in);
-            
+
             while (true) {
                 textinLine = br.readLine();
                 if (textinLine == null) {
@@ -171,56 +177,90 @@ public class ModelGenerator {
             fs.close();
             in.close();
             br.close();
-            
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
+
         try {
             FileWriter fstream = new FileWriter(f);
             BufferedWriter outobj = new BufferedWriter(fstream);
             outobj.write(sb.toString());
             outobj.close();
-            
+
         } catch (Exception e) {
-            System.err.println("Error: " + e.getMessage());
+            e.printStackTrace();
+            LOG.severe(e.getMessage());
         }
     }
-    
+
     private static List<Class<Runnable>> listClasses(String javaFilesPath) throws Exception {
         List<Class<Runnable>> classList = new ArrayList<Class<Runnable>>();
         JavaDynamicCompiler<Runnable> compiler = new JavaDynamicCompiler<Runnable>();
         try (Stream<Path> walk = Files.walk(Paths.get(javaFilesPath))) {
-            
+
             List<String> result = walk.map(x -> x.toString())
                     .filter(f -> f.endsWith(".java")).collect(Collectors.toList());
-            
+
             result.forEach(javaFilePath -> {
                 try {
                     Path path = Paths.get(javaFilePath);
-                    System.out.print("\njavaFilePath: " + javaFilePath);
+                    Logger.getLogger(ModelGenerator.class.getName()).log(Level.INFO, null, "\njavaFilePath: " + javaFilePath);
                     byte[] bytes = Files.readAllBytes(path);
                     String fonte = new String(bytes, StandardCharsets.UTF_8);
-                    System.out.print("\nFonte: " + fonte);
+                    Logger.getLogger(ModelGenerator.class.getName()).log(Level.INFO, null, "\nfonte: " + fonte);
                     String nomeClasse = path.getFileName().toString().split("\\.")[0];
                     Class<Runnable> clazz = compiler.compile("testejistar", nomeClasse, fonte);
                     System.out.print("\n" + clazz.getDeclaredAnnotation(Actor.class));
                     classList.add(clazz);
                 } catch (Exception ex) {
-                    Logger.getLogger(ModelGenerator.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(ModelGenerator.class.getName()).log(Level.SEVERE, null, ex.getStackTrace());
                 }
             });
-            
+
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
         return classList;
     }
-    
+
+    private static List<Class<Runnable>> listCompiledClasses(String javaFilesPath) throws Exception {
+        List<Class<Runnable>> classList = new ArrayList<Class<Runnable>>();
+
+        try (Stream<Path> walk = Files.walk(Paths.get(javaFilesPath))) {
+
+            List<String> result = walk.map(x -> x.toString())
+                    .filter(f -> f.endsWith(".class")).collect(Collectors.toList());
+            File file = new File(javaFilesPath); //Pasta que contém os arquivos .class			
+            URL classUrl = file.toURL();
+            URL[] classUrls = {classUrl}; //Como o construtor do URLClassLoader é um array é necessário fazer isso
+            URLClassLoader ucl = new URLClassLoader(classUrls);
+            result.forEach((String javaFilePath) -> {
+                try {
+                    Path path = Paths.get(javaFilePath);
+                    //byte[] bytes = Files.readAllBytes(path);                    
+                    String nomeClasse = path.getFileName().toString().split("\\.")[0];
+                    LOG.info("\nnome classe: " + javaFilePath);
+                    //nomeClasse += ".class";
+                    Class clazz = ucl.loadClass(nomeClasse); // Arqui você carrega a classe que deseja
+                    LOG.info("\nclasse: " + clazz);
+                    classList.add(clazz);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    LOG.severe(ex.getLocalizedMessage());
+                }
+            });
+
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+        return classList;
+    }
+
     private static void pistarResult(List<Class<Runnable>> classList, String projectPath) {
-        
+
         String fileName = projectPath + "\\goal_model.txt";
         outputModel.append("{\n"
                 + "  \"actors\": [\n");
@@ -243,7 +283,7 @@ public class ModelGenerator {
                     }
                 }
                 uuid = UUID.randomUUID();
-                actors.put(a,uuid);
+                actors.put(a, uuid);
                 outputActors.append("\n{\n"
                         + "      \"id\": \"" + uuid + "\",\n"
                         + "      \"text\": \"" + a.name() + "\",\n"
@@ -257,10 +297,10 @@ public class ModelGenerator {
                 x += 50;
                 y += 50;
             }
-            
+
             for (Goal g : clazz.getAnnotationsByType(Goal.class)) {
                 uuid = UUID.randomUUID();
-                goals.put(g.name().toLowerCase(),uuid);
+                goals.put(g.name().toLowerCase(), uuid);
                 outputActors.append("\n{\n"
                         + "      \"id\": \"" + uuid + "\",\n"
                         + "      \"text\": \"" + g.name() + "\",\n"
@@ -273,10 +313,10 @@ public class ModelGenerator {
                 x += 5;
                 y += 5;
             }
-            
+
             for (Softgoal s : clazz.getAnnotationsByType(Softgoal.class)) {
                 uuid = UUID.randomUUID();
-                softgoals.put(s.name(),uuid);
+                softgoals.put(s.name(), uuid);
                 outputActors.append("\n{\n"
                         + "      \"id\": \"" + uuid + "\",\n"
                         + "      \"text\": \"" + s.name() + "\",\n"
@@ -291,7 +331,7 @@ public class ModelGenerator {
             }
             for (Resource r : clazz.getAnnotationsByType(Resource.class)) {
                 uuid = UUID.randomUUID();
-                resources.put(r.name(),uuid);
+                resources.put(r.name(), uuid);
                 outputActors.append("\n{\n"
                         + "      \"id\": \"" + uuid + "\",\n"
                         + "      \"text\": \"" + r.name() + "\",\n"
@@ -304,11 +344,11 @@ public class ModelGenerator {
                 x += 5;
                 y += 5;
             }
-            
+
             for (Field f : clazz.getDeclaredFields()) {
                 for (Resource r : f.getAnnotationsByType(Resource.class)) {
                     uuid = UUID.randomUUID();
-                    resources.put(r.name(),uuid);
+                    resources.put(r.name(), uuid);
                     outputActors.append("\n{\n"
                             + "      \"id\": \"" + uuid + "\",\n"
                             + "      \"text\": \"" + r.name() + "\",\n"
@@ -323,7 +363,7 @@ public class ModelGenerator {
                 }
                 for (Softgoal s : f.getAnnotationsByType(Softgoal.class)) {
                     uuid = UUID.randomUUID();
-                    softgoals.put(s.name(),uuid);
+                    softgoals.put(s.name(), uuid);
                     outputActors.append("\n{\n"
                             + "      \"id\": \"" + uuid + "\",\n"
                             + "      \"text\": \"" + s.name() + "\",\n"
@@ -337,11 +377,11 @@ public class ModelGenerator {
                     y += 5;
                 }
             }
-            
+
             for (Method m : clazz.getDeclaredMethods()) {
                 String taskName = null;
                 for (Task t : m.getAnnotationsByType(Task.class)) {
-                    
+
                     tasks.put(t.name(), UUID.randomUUID());
                     taskName = t.name().toLowerCase();
                     outputActors.append("\n{\n"
@@ -357,10 +397,10 @@ public class ModelGenerator {
                     y += 5;
                 }
                 for (TaskDecomposition td : m.getAnnotationsByType(TaskDecomposition.class)) {
-                    
+
                     if (taskName == null) {
                         taskName = m.getName().toLowerCase();
-                        tasks.put(taskName, UUID.randomUUID());                                                
+                        tasks.put(taskName, UUID.randomUUID());
                         outputActors.append("\n{\n"
                                 + "      \"id\": \"" + tasks.get(taskName) + "\",\n"
                                 + "      \"text\": \"" + m.getName().toLowerCase() + "\",\n"
@@ -393,7 +433,7 @@ public class ModelGenerator {
                                 + "      \"target\": \"" + goals.get(td.element()) + "\"\n"
                                 + "},");
                     }
-                    
+
                 }
                 for (Contribution c : m.getAnnotationsByType(Contribution.class)) {
                     if (taskName == null) {
@@ -423,7 +463,7 @@ public class ModelGenerator {
                                 + "        \"Description\": \" \"\n"
                                 + "      }},");
                     }
-                    
+
                     outputLinks.append("\n{\n"
                             + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
                             + "      \"type\": \"istar.ContributionLink\",\n"
@@ -469,7 +509,7 @@ public class ModelGenerator {
                                 + "      \"target\": \"" + goals.get(me.end()) + "\"\n"
                                 + "},");
                     }
-                    
+
                     if (me.endType().equals(MeansEndType.RESOURCE)) {
                         if (resources.get(me.end().toLowerCase()) == null) {
                             resources.put(me.end().toLowerCase(), UUID.randomUUID());
@@ -490,16 +530,16 @@ public class ModelGenerator {
                                 + "      \"target\": \"" + resources.get(me.end()) + "\"\n"
                                 + "},");
                     }
-                    
+
                     x += 5;
                     y += 5;
                 }
             }
             outputActors.deleteCharAt(outputActors.length() - 1);
             outputActors.append("]},");
-            
+
         });
-        
+
         outputActors.deleteCharAt(outputActors.length() - 1);
         outputActors.append(" ],\n");
         outputModel.append(outputActors);

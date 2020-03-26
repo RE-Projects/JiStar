@@ -4,6 +4,7 @@
             <actionName>run</actionName>
             <packagings>
                 <packaging>jar</packaging>
+                
             </packagings>
             <goals>
                 <goal>process-classes</goal>

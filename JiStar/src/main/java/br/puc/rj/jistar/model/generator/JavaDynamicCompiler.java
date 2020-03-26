@@ -32,7 +32,7 @@ public class JavaDynamicCompiler<T> {
   public JavaDynamicCompiler() throws JavaDynamicException {
     compiler = ToolProvider.getSystemJavaCompiler();
     if (compiler == null) { 
-            throw new JavaDynamicException("Compilador não encontrado");
+            throw new JavaDynamicException("Cmpiler no found.");
     }
   
     classLoader = new JavaDynamicClassLoader
