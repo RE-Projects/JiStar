@@ -7,6 +7,7 @@ package br.puc.rj.jistar.core.elements;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -18,6 +19,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(value=RetentionPolicy.RUNTIME)
 @Target(value=ElementType.TYPE)
+@Repeatable(Actors.class)
 public @interface Actor {
     String name();
     ActorType type();

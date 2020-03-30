@@ -23,4 +23,5 @@ import java.lang.annotation.ElementType;
 public @interface Softgoal {
     String name();
     String description() default "";
+    String actor();
 }

@@ -23,4 +23,5 @@ import java.lang.annotation.Target;
 public @interface Goal {
     String name();
     String description() default "";
+    String actor();
 }
