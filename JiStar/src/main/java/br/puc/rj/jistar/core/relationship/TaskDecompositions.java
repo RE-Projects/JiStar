@@ -10,9 +10,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import br.puc.rj.jistar.core.elements.Task;
-import java.lang.annotation.Annotation;
-import java.lang.annotation.Repeatable;
 
 /**
  *
@@ -21,8 +18,6 @@ import java.lang.annotation.Repeatable;
 @Documented
 @Retention(value=RetentionPolicy.SOURCE)
 @Target(value={ElementType.TYPE_USE,ElementType.METHOD, ElementType.PARAMETER})
-@Repeatable(TaskDecompositions.class)
-public @interface TaskDecomposition {
-    TaskDecompositionType type() default TaskDecompositionType.SUB_TASK;
-    String element();
+public @interface TaskDecompositions {
+    TaskDecomposition[] value();
 }
