@@ -10,7 +10,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.annotation.Repeatable;
 
 /**
  *
@@ -19,8 +18,6 @@ import java.lang.annotation.Repeatable;
 @Documented
 @Retention(value=RetentionPolicy.RUNTIME)
 @Target(value=ElementType.METHOD)
-@Repeatable(Contributions.class)
-public @interface Contribution {
-    ContributionType type() default ContributionType.HELP;
-    String softgoal();
+public @interface Contributions {
+    Contribution[] value();
 }
