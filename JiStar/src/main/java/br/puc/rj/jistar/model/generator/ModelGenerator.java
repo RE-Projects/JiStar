@@ -384,10 +384,10 @@ public class ModelGenerator {
                     String taskName = null;
                     for (Task t : m.getAnnotationsByType(Task.class)) {
 
-                        tasks.put(t.name(), UUID.randomUUID());
+                        tasks.put(t.name().toLowerCase(), UUID.randomUUID());
                         taskName = t.name().toLowerCase();
                         outputActors.append("\n{\n"
-                                + "      \"id\": \"" + tasks.get(taskName) + "\",\n"
+                                + "      \"id\": \"" + tasks.get(taskName.toLowerCase()) + "\",\n"
                                 + "      \"text\": \"" + t.name() + "\",\n"
                                 + "      \"type\": \"istar." + "Task" + "\",\n"
                                 + "      \"x\": " + x + ",\n"
@@ -430,9 +430,9 @@ public class ModelGenerator {
                             }
                             outputLinks.append("\n{\n"
                                     + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
-                                    + "      \"type\": \"istar.OrRefinementLink\",\n"
+                                    + "      \"type\": \"istar.AndRefinementLink\",\n"
                                     + "      \"source\": \"" + tasks.get(taskName) + "\",\n"
-                                    + "      \"target\": \"" + goals.get(td.element()) + "\"\n"
+                                    + "      \"target\": \"" + goals.get(td.element().toLowerCase()) + "\"\n"
                                     + "},");
                         }
 
@@ -469,7 +469,7 @@ public class ModelGenerator {
                         outputLinks.append("\n{\n"
                                 + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
                                 + "      \"type\": \"istar.ContributionLink\",\n"
-                                + "      \"source\": \"" + tasks.get(taskName) + "\",\n"
+                                + "      \"source\": \"" + tasks.get(taskName.toLowerCase()) + "\",\n"
                                 + "      \"target\": \"" + softgoals.get(c.softgoal()) + "\",\n"
                                 + "\"label\": \"" + c.type().toString().toLowerCase() + "\"},");
                         x += 5;
@@ -508,7 +508,7 @@ public class ModelGenerator {
                                     + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
                                     + "      \"type\": \"istar.OrRefinementLink\",\n"
                                     + "      \"source\": \"" + tasks.get(taskName) + "\",\n"
-                                    + "      \"target\": \"" + goals.get(me.end()) + "\"\n"
+                                    + "      \"target\": \"" + goals.get(me.end().toLowerCase()) + "\"\n"
                                     + "},");
                         }
 
@@ -529,7 +529,7 @@ public class ModelGenerator {
                                     + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
                                     + "      \"type\": \"istar.OrRefinementLink\",\n"
                                     + "      \"source\": \"" + tasks.get(taskName) + "\",\n"
-                                    + "      \"target\": \"" + resources.get(me.end()) + "\"\n"
+                                    + "      \"target\": \"" + resources.get(me.end().toLowerCase()) + "\"\n"
                                     + "},");
                         }
 
