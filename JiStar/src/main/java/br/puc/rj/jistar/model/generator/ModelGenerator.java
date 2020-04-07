@@ -240,10 +240,8 @@ public class ModelGenerator {
             result.forEach((String javaFilePath) -> {
                 try {
                     Path path = Paths.get(javaFilePath);
-                    //byte[] bytes = Files.readAllBytes(path);                    
                     String nomeClasse = path.getFileName().toString().split("\\.")[0];
                     LOG.info("\nnome classe: " + javaFilePath);
-                    //nomeClasse += ".class";
                     Class clazz = ucl.loadClass(nomeClasse); // Arqui você carrega a classe que deseja
                     LOG.info("\nclasse: " + clazz);
                     classList.add(clazz);
@@ -264,7 +262,7 @@ public class ModelGenerator {
         String fileName = projectPath + "\\goal_model.txt";
         outputModel.append("{\n"
                 + "  \"actors\": [\n");
-        System.out.print("Qtde classes: " + classList.size());
+        
         classList.forEach(clazz -> {
             UUID uuid;
             if (clazz.getAnnotationsByType(Actor.class).length > 0) {
@@ -318,7 +316,7 @@ public class ModelGenerator {
 
                 for (Softgoal s : clazz.getAnnotationsByType(Softgoal.class)) {
                     uuid = UUID.randomUUID();
-                    softgoals.put(s.name(), uuid);
+                    softgoals.put(s.name().toLowerCase(), uuid);
                     outputActors.append("\n{\n"
                             + "      \"id\": \"" + uuid + "\",\n"
                             + "      \"text\": \"" + s.name() + "\",\n"
@@ -365,7 +363,7 @@ public class ModelGenerator {
                     }
                     for (Softgoal s : f.getAnnotationsByType(Softgoal.class)) {
                         uuid = UUID.randomUUID();
-                        softgoals.put(s.name(), uuid);
+                        softgoals.put(s.name().toLowerCase(), uuid);
                         outputActors.append("\n{\n"
                                 + "      \"id\": \"" + uuid + "\",\n"
                                 + "      \"text\": \"" + s.name() + "\",\n"
@@ -453,7 +451,9 @@ public class ModelGenerator {
                             x += 5;
                             y += 5;
                         }
+                        //System.out.print("\nAchou softgoal: " + softgoals.get(c.softgoal().toLowerCase()) == null);
                         if (softgoals.get(c.softgoal().toLowerCase()) == null) {
+                            System.out.print("teste: " + softgoals.keySet());
                             softgoals.put(c.softgoal().toLowerCase(), UUID.randomUUID());
                             outputActors.append("\n{\n"
                                     + "      \"id\": \"" + softgoals.get(c.softgoal().toLowerCase()) + "\",\n"
@@ -470,7 +470,7 @@ public class ModelGenerator {
                                 + "      \"id\": \"" + UUID.randomUUID() + "\",\n"
                                 + "      \"type\": \"istar.ContributionLink\",\n"
                                 + "      \"source\": \"" + tasks.get(taskName.toLowerCase()) + "\",\n"
-                                + "      \"target\": \"" + softgoals.get(c.softgoal()) + "\",\n"
+                                + "      \"target\": \"" + softgoals.get(c.softgoal().toLowerCase()) + "\",\n"
                                 + "\"label\": \"" + c.type().toString().toLowerCase() + "\"},");
                         x += 5;
                         y += 5;
