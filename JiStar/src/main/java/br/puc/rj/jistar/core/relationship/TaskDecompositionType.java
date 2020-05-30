@@ -12,6 +12,6 @@ package br.puc.rj.jistar.core.relationship;
 public enum TaskDecompositionType {
     RESOURCE_FOR,
     SOFTGOAL_FOR,
-    SUB_GOAL,
+    GOAL,
     SUB_TASK
 }
