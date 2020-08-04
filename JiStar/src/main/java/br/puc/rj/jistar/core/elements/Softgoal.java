@@ -22,6 +22,10 @@ import java.lang.annotation.ElementType;
 @Repeatable(Softgoals.class)
 public @interface Softgoal {
     String name();
+    String topic() default "";
     String description() default "";
+    SoftgoalType elementType() default SoftgoalType.NFR_SOFTGOAL;
+    SoftgoalLabel label() default SoftgoalLabel.UNDEFINED;
+    SoftgoalPriority priority() default SoftgoalPriority.UNDEFINED;
     String actor();
 }
